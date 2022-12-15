@@ -6,7 +6,7 @@ import os
 # Cac duong mau vang la khung phat hien vung bang de cat anh
 
 working_directory = os.getcwd()
-IMAGE = cv2.imread(working_directory + "\Images\Anh2.jpg")
+IMAGE = cv2.imread(working_directory + "\Images\Anh1.jpg")
 detectedLinesImg = IMAGE.copy()
 
 
@@ -18,16 +18,18 @@ def sortY(val):
     return val[1]
 
 
-def findHorAndVerLines(image):
-    h_image, w_image, c_image = image.shape
-
-    ### Tien xu ly
+def preprocess(image):
     gray_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # Chuyen ve anh xam
     smooth_img = cv2.GaussianBlur(gray_img, (5, 5), 0)  # Lam min anh
     im_bw = cv2.adaptiveThreshold(smooth_img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15,
                                   8)  # Nhi phan anh
+    return im_bw
 
-    edges = cv2.Canny(im_bw, 100, 200, None, 3)  # Phat hien canh de xu ly Hough
+
+def findHorAndVerLines(image, rawImg):
+    h_image, w_image, c_image = rawImg.shape
+
+    edges = cv2.Canny(image, 100, 200, None, 3)  # Phat hien canh de xu ly Hough
     lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 250, None, None, h_image)
 
     horizontal_lines_tmp = []
@@ -116,7 +118,8 @@ def findHorAndVerLines(image):
         return horizontal_lines, vertical_lines
 
 
-(horizontal_lines, vertical_lines) = findHorAndVerLines(IMAGE)
+im_bw = preprocess(IMAGE)
+(horizontal_lines, vertical_lines) = findHorAndVerLines(im_bw, IMAGE)
 
 # Ve cac duong thang ngang va doc
 for i in range(0, len(horizontal_lines)):
@@ -256,7 +259,8 @@ cv2.waitKey()
 # ####################### NHAN DIEN CAC DUONG THANG DOC###############################
 #
 
-imgCropHorLines, imgCropVerLines = findHorAndVerLines(img_crop)
+img_crop_bw = preprocess(img_crop)
+imgCropHorLines, imgCropVerLines = findHorAndVerLines(img_crop_bw, img_crop)
 detectedLinesImgCrop = img_crop.copy()
 
 for i in range(0, len(imgCropHorLines)):
